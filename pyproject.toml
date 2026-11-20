@@ -1,0 +1,153 @@
+[project]
+name = "cheaprecords"
+version = "0.1.0"
+description = "Compare JB Hi-Fi vinyl record prices against the Discogs marketplace."
+readme = "README.md"
+requires-python = ">=3.12"
+authors = [{ name = "John Choi" }]
+# PEP 639 SPDX license expression; the full text is in LICENSE.
+license = "GPL-3.0-or-later"
+license-files = ["LICENSE"]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
+    "Typing :: Typed",
+]
+dependencies = [
+    "httpx>=0.28.1",
+    "playwright>=1.65.2",
+]
+
+[project.scripts]
+cheaprecords = "cheaprecords.__main__:main"
+
+[build-system]
+requires = ["uv_build>=0.13.4,<0.14.0"]
+build-backend = "uv_build"
+
+# ---------------------------------------------------------------------------
+# uv: dev tooling lives in a dependency group, installed by default with
+# `uv sync` but excluded from the published package.
+# ---------------------------------------------------------------------------
+[dependency-groups]
+dev = [
+    "pre-commit>=4.7.0",
+    "pre-commit-hooks>=6.0.0",
+    "pytest>=9.1.1",
+    "pytest-cov>=7.1.0",
+    "ruff>=0.15.19",
+    "ty>=0.0.53",
+]
+
+# ---------------------------------------------------------------------------
+# ruff: linter + formatter (https://docs.astral.sh/ruff/)
+# The target Python version is inferred from `requires-python`.
+# ---------------------------------------------------------------------------
+[tool.ruff]
+line-length = 88
+src = ["src", "tests"]
+
+[tool.ruff.lint]
+# A pragmatic default rule set. Add/remove codes to taste.
+select = [
+    "E",    # pycodestyle errors
+    "W",    # pycodestyle warnings
+    "F",    # pyflakes
+    "I",    # isort (import sorting)
+    "N",    # pep8-naming
+    "D",    # pydocstyle (docstrings)
+    "UP",   # pyupgrade
+    "ANN",  # flake8-annotations (enforce type hints)
+    "S",    # flake8-bandit (security)
+    "B",    # flake8-bugbear
+    "C4",   # flake8-comprehensions
+    "T20",  # flake8-print (no stray print calls)
+    "PT",   # flake8-pytest-style
+    "RET",  # flake8-return
+    "SIM",  # flake8-simplify
+    "PTH",  # flake8-use-pathlib
+    "A",    # flake8-builtins (don't shadow builtins)
+    "ARG",  # flake8-unused-arguments
+    "DTZ",  # flake8-datetimez (timezone-aware datetimes)
+    "ERA",  # eradicate (commented-out code)
+    "FURB", # refurb (modern idioms)
+    "PERF", # perflint (performance anti-patterns)
+    "PGH",  # pygrep-hooks (blanket noqa / type: ignore)
+    "PIE",  # flake8-pie
+    "PL",   # pylint
+    "TC",   # flake8-type-checking (typing-only imports)
+    "TRY",  # tryceratops (exception handling)
+    "RUF",  # ruff-specific rules
+]
+ignore = []
+
+[tool.ruff.lint.per-file-ignores]
+# Tests may use assert, don't need docstrings, and compare against literal
+# expected values.
+"tests/**/*.py" = ["S101", "D", "PLR2004"]
+# The CLI entry point is allowed to print.
+"src/cheaprecords/__main__.py" = ["T201"]
+
+[tool.ruff.lint.pydocstyle]
+convention = "google"
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+docstring-code-format = true
+
+# ---------------------------------------------------------------------------
+# ty: type checker (https://docs.astral.sh/ty/)
+# The target Python version is inferred from `requires-python`.
+# ---------------------------------------------------------------------------
+[tool.ty.environment]
+# ty discovers the .venv automatically; pin the root for clarity.
+root = ["./src"]
+
+[tool.ty.src]
+include = ["src", "tests"]
+
+[tool.ty.rules]
+# Surface common mistakes as errors. See `ty check --help` and the docs
+# for the full rule list; tune these to your team's tolerance.
+possibly-unresolved-reference = "error"
+unused-ignore-comment = "warn"
+
+[tool.ty.terminal]
+# Fail on warnings too, so `ty check` behaves the same everywhere it runs
+# (by hand, in pre-commit, in CI) without anyone remembering a flag.
+error-on-warning = true
+
+# ---------------------------------------------------------------------------
+# pytest (native TOML config, pytest >= 9)
+# ---------------------------------------------------------------------------
+[tool.pytest]
+testpaths = ["tests"]
+# Coverage is opt-in (`pytest --cov`) rather than in addopts, so running a
+# subset of tests doesn't trip the `fail_under` threshold below.
+# importlib mode is pytest's recommendation for new projects: test modules
+# need no `__init__.py` and nothing is inserted into sys.path.
+addopts = ["-ra", "--import-mode=importlib"]
+# Enables strict_config, strict_markers, strict_xfail and
+# strict_parametrization_ids.
+strict = true
+filterwarnings = ["error"]
+
+# ---------------------------------------------------------------------------
+# coverage (collected via pytest-cov)
+# ---------------------------------------------------------------------------
+[tool.coverage.run]
+source_pkgs = ["cheaprecords"]
+branch = true
+# Drives a real Chrome against the live site, so the tests can't exercise it.
+omit = ["*/cheaprecords/browser.py"]
+
+[tool.coverage.report]
+# Enforced whenever coverage is collected (`pytest --cov`), e.g. in CI.
+fail_under = 90
+show_missing = true
+skip_covered = true
+exclude_also = ['if __name__ == "__main__":']

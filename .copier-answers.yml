@@ -1,0 +1,8 @@
+# Changes here will be overwritten by Copier; NEVER EDIT MANUALLY
+_commit: 2f176e7
+_src_path: gh:jc-teamhq/base-python-project
+author_name: John Choi
+description: Compare JB Hi-Fi vinyl record prices against the Discogs marketplace.
+license: GPL-3.0-or-later
+package_name: cheaprecords
+project_name: cheaprecords
